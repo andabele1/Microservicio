@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify
 from flask_mysqldb import MySQL
 from config import config
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 conexion = MySQL(app)
@@ -13,7 +14,7 @@ def index():
     return render_template('main.html')
 
 
-# Función para buscar una receta aleatoria
+# Función para buscar una receta aleatoria y generar una orden
 def buscar_receta():
     try:
         # Generar un número aleatorio del 1 al 6
@@ -43,12 +44,23 @@ def buscar_receta():
                     break
 
             if ingredientes_suficientes:
+                # Generar una nueva orden
+                actualizacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                cursor.execute("INSERT INTO orden (Actualizacion, recetas_id, estado_id) VALUES (%s, %s, %s)", (actualizacion, numero_aleatorio, 1))  # Plato preparado (estado_id = 1)
+                conexion.connection.commit()
+
                 # Reducir la cantidad de ingredientes en el inventario
                 for ingrediente, cantidad in ingredientes:
                     cursor.execute("UPDATE ingredientes SET inventario = inventario - %s WHERE ingrediente = %s", (cantidad, ingrediente))
                 conexion.connection.commit()
+
                 return jsonify({'nombre': nombre_receta, 'descripcion': descripcion_receta, 'ingredientes': ingredientes, 'mensaje': 'Plato preparado'})
             else:
+                # Si no hay suficientes ingredientes, establecer el estado de la orden en "en cola" (estado_id = 2)
+                actualizacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                cursor.execute("INSERT INTO orden (Actualizacion, recetas_id, estado_id) VALUES (%s, %s, %s)", (actualizacion, numero_aleatorio, 2))  # En cola (estado_id = 2)
+                conexion.connection.commit()
+
                 return jsonify({'error': 'No hay suficientes ingredientes para preparar la receta'}), 404
         else:
             return jsonify({'error': 'No se encontró ninguna receta con el ID generado'}), 404
