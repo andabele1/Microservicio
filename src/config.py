@@ -3,7 +3,7 @@ class DevelopmentConfig():
     MYSQL_HOST = 'localhost'
     MYSQL_USER = 'Andres'
     MYSQL_PASSWORD = 'Andres1234'
-    MYSQL_DB = 'Microservicio'
+    MYSQL_DB = 'Microservicios'
 
 config = {
     'development': DevelopmentConfig

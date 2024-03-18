@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Receta</title>
+</head>
+<body>
+    <h1>Buscar Receta</h1>
+    <button onclick="buscarReceta()">Buscar Receta Aleatoria</button>
+    <div id="receta-container"></div>
+
+    <script>
+        function buscarReceta() {
+            fetch('/buscar_receta')
+            .then(response => response.json())
+            .then(data => {
+                const recetaContainer = document.getElementById('receta-container');
+                if (data.error) {
+                    recetaContainer.innerHTML = `<p>${data.error}</p>`;
+                } else {
+                    const { nombre, descripcion, ingredientes, mensaje } = data;
+                    let ingredientesHTML = '';
+                    if (ingredientes) {
+                        ingredientesHTML = '<ul>';
+                        ingredientes.forEach(ingrediente => {
+                            ingredientesHTML += `<li>${ingrediente[0]}: ${ingrediente[1]}</li>`;
+                        });
+                        ingredientesHTML += '</ul>';
+                    }
+                    recetaContainer.innerHTML = `
+                        <h2>${nombre}</h2>
+                        <p>${descripcion}</p>
+                        ${ingredientesHTML}
+                        <p>${mensaje}</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error al buscar la receta:', error);
+                const recetaContainer = document.getElementById('receta-container');
+                recetaContainer.innerHTML = `<p>Error al buscar la receta. Por favor, intenta de nuevo más tarde.</p>`;
+            });
+        }
+    </script>
+    
+</body>
+</html>
