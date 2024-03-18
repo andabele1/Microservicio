@@ -43,6 +43,10 @@ def buscar_receta():
                     break
 
             if ingredientes_suficientes:
+                # Reducir la cantidad de ingredientes en el inventario
+                for ingrediente, cantidad in ingredientes:
+                    cursor.execute("UPDATE ingredientes SET inventario = inventario - %s WHERE ingrediente = %s", (cantidad, ingrediente))
+                conexion.connection.commit()
                 return jsonify({'nombre': nombre_receta, 'descripcion': descripcion_receta, 'ingredientes': ingredientes, 'mensaje': 'Plato preparado'})
             else:
                 return jsonify({'error': 'No hay suficientes ingredientes para preparar la receta'}), 404
