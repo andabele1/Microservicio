@@ -11,50 +11,38 @@ app = Flask(__name__)
 conexion = MySQL(app)
 
 def consumir_api(ingrediente):
-    # URL base de la API
     url = "https://microservices-utadeo-arq-fea471e6a9d4.herokuapp.com/api/v1/software-architecture/market-place"
-
-    # Parámetros de la solicitud
     params = {"ingredient": ingrediente}
 
     try:
-        # Realizar la solicitud GET a la API
         response = requests.get(url, params=params)
 
-        # Verificar el código de estado de la respuesta
         if response.status_code == 200:
-            # Extraer los datos de la respuesta JSON
             data = response.json()
-
-            # Verificar si hay datos en la respuesta
             if "data" in data and ingrediente in data["data"]:
                 cantidad = data["data"][ingrediente]
                 return cantidad
             else:
-                return 0  # Si no se encuentra el ingrediente, retornar 0
+                return 0
         else:
-            # Si la solicitud falla, imprimir el mensaje de error
             print("Error:", response.text)
             return None
     except Exception as e:
         print(f"Error al consumir la API: {e}")
         return None
 
-# Función para manejar la cola y verificar los ingredientes
 def manejar_cola():
     while True:
         try:
-            with app.app_context():  # Asegurar que estamos dentro del contexto de la aplicación Flask
+            with app.app_context():
                 with conexion.connection.cursor() as cursor:
                     cursor.execute("SELECT id, recetas_id FROM orden WHERE estado_id = 2")
                     ordenes = cursor.fetchall()
 
                     for orden_id, receta_id in ordenes:
-                        # Obtener la receta asociada a la orden
                         cursor.execute("SELECT ingrediente, cantidad FROM ingrediente_receta INNER JOIN ingredientes ON ingrediente_receta.ingredientes_id = ingredientes.id WHERE recetas_id = %s", (receta_id,))
                         ingredientes_receta = cursor.fetchall()
 
-                        # Verificar si hay suficientes ingredientes para la receta
                         ingredientes_suficientes = True
                         for ingrediente, cantidad in ingredientes_receta:
                             cantidad_disponible = consumir_api(ingrediente)
@@ -70,10 +58,11 @@ def manejar_cola():
                         else:
                             print(f"No hay suficientes ingredientes para la orden {orden_id}.")
 
-            time.sleep(2)  # Espera 5 segundos antes de verificar nuevamente
+            time.sleep(5)
         except Exception as e:
             print(f"Error al manejar la cola: {e}")
-            time.sleep(2)  # Espera 5 segundos antes de intentar nuevamente
+            # Si ocurre un error, continuamos con el ciclo después de una breve espera
+            time.sleep(5)
 
 # Ruta para renderizar el archivo HTML principal
 @app.route('/main')
@@ -169,7 +158,8 @@ def mostrar_ultimas_ordenes():
 
 # Resto del código de la aplicación...
 
-# Iniciar la aplicación Flask
 if __name__ == '__main__':
     app.config.from_object(config['development'])
+    cola_thread = Thread(target=manejar_cola)
+    cola_thread.start()
     app.run()
