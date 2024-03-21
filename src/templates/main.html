@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscar Receta</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <h1>Buscar Receta</h1>
-    <button onclick="buscarReceta()">Generar Receta Aleatoria</button>
-    <div id="receta-container"></div>
+    <div class="container">
+        <h1>Buscar Receta</h1>
+        <button onclick="buscarReceta()">Generar Receta Aleatoria</button>
+        <div id="receta-container"></div>
 
+        <!-- Últimas 5 órdenes -->
+        <div id="ultimas-ordenes" class="orden-box">
+            <h2>Últimas 5 Órdenes</h2>
+            <div id="ultimas-ordenes-container"></div>
+        </div>
+    </div>
     <script>
-        function buscarReceta() {
+         function buscarReceta() {
             fetch('/buscar_receta')
             .then(response => response.json())
             .then(data => {
@@ -41,8 +49,28 @@
                 const recetaContainer = document.getElementById('receta-container');
                 recetaContainer.innerHTML = `<p>Error al buscar la receta. Por favor, intenta de nuevo más tarde.</p>`;
             });
+
+            // Solicitar las últimas 5 órdenes
+            fetch('/ultimas_ordenes')
+            .then(response => response.json())
+            .then(ordenes => {
+                const ultimasOrdenesContainer = document.getElementById('ultimas-ordenes-container');
+                ultimasOrdenesContainer.innerHTML = '';
+                ordenes.forEach(orden => {
+                    ultimasOrdenesContainer.innerHTML += `
+                        <p>ID de Orden: ${orden.id}</p>
+                        <p>ID de Receta: ${orden.recetas_id}</p>
+                        <p>Estado: ${orden.estado_id == 1 ? 'Preparada' : 'En cola'}</p>
+                        <hr>
+                    `;
+                });
+            })
+            .catch(error => {
+                console.error('Error al obtener las últimas órdenes:', error);
+                const ultimasOrdenesContainer = document.getElementById('ultimas-ordenes-container');
+                ultimasOrdenesContainer.innerHTML = `<p>Error al obtener las últimas órdenes. Por favor, intenta de nuevo más tarde.</p>`;
+            });
         }
     </script>
-    
 </body>
 </html>

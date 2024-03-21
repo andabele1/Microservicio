@@ -1,0 +1,27 @@
+
+.orden-box {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.orden-box h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.orden-box .orden {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.orden-box .orden p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+}

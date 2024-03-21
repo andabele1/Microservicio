@@ -8,7 +8,7 @@ app = Flask(__name__)
 conexion = MySQL(app)
 
 
-# Ruta para renderizar el archivo HTML
+# Ruta para renderizar el archivo HTML principal
 @app.route('/main')
 def index():
     return render_template('main.html')
@@ -77,6 +77,38 @@ def buscar_receta():
 @app.route('/buscar_receta')
 def buscar_receta_endpoint():
     return buscar_receta()
+
+
+# Nueva ruta para visualizar órdenes anteriores
+@app.route('/ordenes')
+def mostrar_ordenes():
+    try:
+        cursor = conexion.connection.cursor()
+        cursor.execute("SELECT id, recetas_id, estado_id FROM orden")
+        ordenes = cursor.fetchall()
+        ordenes_data = [{'id': orden[0], 'recetas_id': orden[1], 'estado_id': orden[2]} for orden in ordenes]
+        return jsonify(ordenes_data)
+    except Exception as e:
+        return jsonify({'error': f'Error al obtener las órdenes: {e}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+
+
+# Nueva ruta para visualizar las últimas 5 órdenes
+@app.route('/ultimas_ordenes')
+def mostrar_ultimas_ordenes():
+    try:
+        cursor = conexion.connection.cursor()
+        cursor.execute("SELECT id, recetas_id, estado_id FROM orden ORDER BY id DESC LIMIT 5")
+        ordenes = cursor.fetchall()
+        ordenes_data = [{'id': orden[0], 'recetas_id': orden[1], 'estado_id': orden[2]} for orden in ordenes]
+        return jsonify(ordenes_data)
+    except Exception as e:
+        return jsonify({'error': f'Error al obtener las últimas órdenes: {e}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
 
 
 if __name__ == '__main__':
